@@ -36,22 +36,22 @@ TrustVault is a zero-trust, enterprise-grade secure document management applicat
 
 | Module | Feature | Implementation Path | Status |
 |---|---|---|---|
-| **Security** | BCrypt Password Hashing | `com.trustvault.security.SecurityConfig` | Planned |
-| **Security** | CSRF & Session Fixation Protection | `com.trustvault.security.SecurityConfig` | Planned |
-| **Security** | Safe Initial Admin Provisioning | `com.trustvault.service.DataInitializer` | Planned |
-| **RBAC** | Roles: `ADMIN`, `OWNER`, `VIEWER` | `com.trustvault.model.Role` | Planned |
-| **Documents** | Multipart Upload with MIME/Size Validation | `com.trustvault.controller.DocumentController` | Planned |
-| **Documents** | Unguessable UUID Storage Paths | `com.trustvault.service.SupabaseStorageService` | Planned |
-| **Documents** | Search by Name, Owner, Category, Date | `com.trustvault.repository.DocumentRepository` | Planned |
-| **Documents** | Authorized Streaming Downloads | `com.trustvault.controller.DocumentController` | Planned |
-| **Sharing** | Granular READ & EDIT Permissions | `com.trustvault.model.DocumentPermission` | Planned |
-| **Sharing** | Immediate Revocation Enforcement | `com.trustvault.service.DocumentAccessPolicyService` | Planned |
-| **Sharing** | Strict IDOR Protection | `com.trustvault.service.DocumentAccessPolicyService` | Planned |
-| **Audit** | Append-Only Tamper-Resistant Audit Trail | `com.trustvault.service.AuditLogService` | Planned |
-| **Audit** | Admin-Only Security Log Viewer | `com.trustvault.controller.AdminController` | Planned |
-| **UI** | Responsive Black & Emerald-Green Design | `src/main/resources/templates/`, `static/css/` | Planned |
-| **Deployment**| Multi-stage Dockerfile for Render | `Dockerfile`, `render.yaml` | Planned |
-| **Testing** | Automated Security Tests (14 scenarios) | `src/test/java/com/trustvault/` | Planned |
+| **Security** | BCrypt Password Hashing | `com.trustvault.security.SecurityConfig` | Verified & Tested |
+| **Security** | CSRF & Session Fixation Protection | `com.trustvault.security.SecurityConfig` | Verified & Tested |
+| **Security** | Safe Initial Admin Provisioning | `com.trustvault.service.DataInitializer` | Verified & Tested |
+| **RBAC** | Roles: `ADMIN`, `OWNER`, `VIEWER` | `com.trustvault.model.Role` | Verified & Tested |
+| **Documents** | Multipart Upload with MIME/Size Validation | `com.trustvault.controller.DocumentController` | Verified & Tested |
+| **Documents** | Unguessable UUID Storage Paths | `com.trustvault.service.SupabaseStorageService` | Verified & Tested |
+| **Documents** | Search by Name, Owner, Category, Date | `com.trustvault.repository.DocumentRepository` | Verified & Tested |
+| **Documents** | Authorized Streaming Downloads | `com.trustvault.controller.DocumentController` | Verified & Tested |
+| **Sharing** | Granular READ & EDIT Permissions | `com.trustvault.model.DocumentPermission` | Verified & Tested |
+| **Sharing** | Immediate Revocation Enforcement | `com.trustvault.service.DocumentAccessPolicyService` | Verified & Tested |
+| **Sharing** | Strict IDOR Protection | `com.trustvault.service.DocumentAccessPolicyService` | Verified & Tested |
+| **Audit** | Append-Only Tamper-Resistant Audit Trail | `com.trustvault.service.AuditLogService` | Verified & Tested |
+| **Audit** | Admin-Only Security Log Viewer | `com.trustvault.controller.AdminController` | Verified & Tested |
+| **UI** | Responsive Black & Emerald-Green Design | `src/main/resources/templates/`, `static/css/` | Verified & Tested |
+| **Deployment**| Multi-stage Dockerfile for Render | `Dockerfile`, `render.yaml` | Verified & Tested |
+| **Testing** | Automated Security Tests (16 scenarios) | `src/test/java/com/trustvault/` | Verified (16/16 Passed) |
 
 ---
 
