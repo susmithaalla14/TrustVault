@@ -20,6 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
