@@ -27,5 +27,4 @@ This log documents genuine dated AI-assisted engineering interactions for the Tr
 * Verified end-to-end compilation with `.\mvnw.cmd compile` which succeeded in 37 seconds.
 * Added `h2` database in test scope to `pom.xml` to enable fast, self-contained automated security testing alongside production PostgreSQL.
 
-### 5. Related Commit
-* *Commit*: `feat: initialize Spring Boot project structure with Maven wrapper and dependencies`
+* **Related Commit**: `42ffe03` (`feat: initialize Spring Boot project structure with Maven wrapper and documentation`)
