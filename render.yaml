@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: trustvault
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        value: https://tkksvfmtaoxlexcmngmk.supabase.co
+      - key: SUPABASE_STORAGE_BUCKET
+        value: trustvault-documents
+      # Secret environment variables configured in Render Dashboard (sync: false)
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
