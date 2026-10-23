@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management — TrustVault Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('admin-users')}"></div>
+
+<main class="main-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <a th:href="@{/admin}" style="color: #c084fc; text-decoration: none; font-size: 0.9rem;">&larr; Admin Overview</a>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">User & Role Management</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Assign roles (ADMIN, OWNER, VIEWER) and manage account activation status
+            </p>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username & Name</th>
+                        <th>Email</th>
+                        <th>Assigned Role</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th style="text-align: right;">Administrative Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}">
+                        <td>
+                            <strong style="color: #fff;" th:text="${u.username}">username</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" th:text="${u.fullName}">Full Name</div>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.85rem;" th:text="${u.email}">user@domain.com</td>
+                        <td>
+                            <form th:action="@{'/admin/users/' + ${u.id} + '/role'}" method="post" style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                                <select name="role" style="padding: 0.25rem 0.5rem; font-size: 0.82rem; width: auto;" onchange="this.form.submit()">
+                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${u.role == r}">OWNER</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <span class="badge" th:classappend="${u.enabled} ? 'badge-success' : 'badge-danger'" th:text="${u.enabled ? 'ACTIVE' : 'DISABLED'}">ACTIVE</span>
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 0.85rem;" th:text="${#temporals.format(u.createdAt, 'yyyy-MM-dd')}">2026-10-23</td>
+                        <td style="text-align: right;">
+                            <form th:action="@{'/admin/users/' + ${u.id} + '/status'}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm" th:classappend="${u.enabled} ? 'btn-danger' : 'btn-primary'" 
+                                        th:text="${u.enabled ? 'Deactivate' : 'Activate'}"
+                                        onclick="return confirm('Change activation status for this user?');">
+                                    Toggle
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

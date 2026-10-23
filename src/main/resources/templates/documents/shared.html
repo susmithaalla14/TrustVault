@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Documents — TrustVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('shared-documents')}"></div>
+
+<main class="main-wrapper">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">Documents Shared With Me</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Documents granted to your account by other vault owners
+        </p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <div class="card">
+        <div class="table-responsive" th:if="${!documents.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document Title</th>
+                        <th>Owner</th>
+                        <th>Category</th>
+                        <th>Size</th>
+                        <th>Shared On</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${documents}">
+                        <td>
+                            <a th:href="@{'/documents/' + ${doc.id}}" style="color: #fff; font-weight: 600; text-decoration: none;">
+                                <span th:text="${doc.title}">Doc Title</span>
+                            </a>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" th:text="${doc.originalFilename}">file.pdf</div>
+                        </td>
+                        <td>
+                            <span th:text="${doc.owner.fullName != null ? doc.owner.fullName : doc.owner.username}">Owner</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="'@' + ${doc.owner.username}">@user</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info" th:text="${doc.category}">Category</span>
+                        </td>
+                        <td th:text="${doc.getFormattedSize()}">1.2 MB</td>
+                        <td style="color: var(--text-secondary);" th:text="${#temporals.format(doc.createdAt, 'yyyy-MM-dd')}">2026-10-23</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.5rem;">
+                                <a th:href="@{'/documents/' + ${doc.id}}" class="btn btn-secondary btn-sm">View</a>
+                                <a th:href="@{'/documents/' + ${doc.id} + '/download'}" class="btn btn-primary btn-sm">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${documents.isEmpty()}" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+            <div style="font-size: 3rem; margin-bottom: 0.75rem;">🤝</div>
+            <h3>No documents have been shared with you yet</h3>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">When other vault owners share documents with your username, they will appear here.</p>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

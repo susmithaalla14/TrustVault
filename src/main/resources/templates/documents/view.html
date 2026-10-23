@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${document.title} + ' — TrustVault'">Document Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('documents')}"></div>
+
+<main class="main-wrapper" style="max-width: 1000px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <a th:href="@{/documents}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">&larr; Back to My Documents</a>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;" th:text="${document.title}">Document Title</h1>
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">
+                Vault ID: <span style="font-family: monospace;" th:text="${document.id}">1</span> &bull; 
+                Owned by: <strong th:text="${document.owner.username}">owner</strong>
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <a th:href="@{'/documents/' + ${document.id} + '/download'}" class="btn btn-primary" title="Stream Download File">
+                ⬇️ Download File
+            </a>
+            <a th:href="@{'/documents/' + ${document.id} + '/signed-url'}" class="btn btn-secondary" title="Generate Signed Supabase Storage URL">
+                🔗 Generate Signed URL
+            </a>
+            <form th:if="${canDelete}" th:action="@{'/documents/' + ${document.id} + '/delete'}" method="post" onsubmit="return confirm('Are you sure you want to permanently delete this document and remove its binary from storage?');" style="display: inline;">
+                <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <!-- Signed URL Notification Banner -->
+    <div th:if="${signedUrl}" class="card" style="margin-bottom: 2rem; border-color: rgba(14, 165, 233, 0.4); background: rgba(14, 165, 233, 0.08);">
+        <h4 style="color: #7dd3fc; margin-bottom: 0.5rem;">🔗 Short-Lived Signed Download URL (60s Expiry):</h4>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="signedUrlInput" th:value="${signedUrl}" readonly style="background: rgba(0,0,0,0.5); font-family: monospace; font-size: 0.85rem;">
+            <button type="button" id="copyBtn" class="btn btn-secondary btn-sm" onclick="copyToClipboard(document.getElementById('signedUrlInput').value, 'copyBtn')">
+                Copy
+            </button>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.5rem;">
+            ⚠️ This URL is valid only for 60 seconds and grants temporary direct access via Supabase Storage policies.
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Metadata Overview Card -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Document Metadata</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label>Original Filename</label>
+                    <div style="color: #fff; font-family: monospace; font-size: 0.9rem;" th:text="${document.originalFilename}">filename.pdf</div>
+                </div>
+                <div>
+                    <label>Category</label>
+                    <div><span class="badge badge-success" th:text="${document.category}">General</span></div>
+                </div>
+                <div>
+                    <label>File Size</label>
+                    <div style="color: #fff; font-weight: 600;" th:text="${document.getFormattedSize()}">1.2 MB</div>
+                </div>
+                <div>
+                    <label>Content / MIME Type</label>
+                    <div style="color: #fff; font-family: monospace; font-size: 0.85rem;" th:text="${document.contentType}">application/pdf</div>
+                </div>
+                <div>
+                    <label>Uploaded On</label>
+                    <div style="color: var(--text-secondary); font-size: 0.88rem;" th:text="${#temporals.format(document.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-10-23</div>
+                </div>
+                <div>
+                    <label>Last Updated</label>
+                    <div style="color: var(--text-secondary); font-size: 0.88rem;" th:text="${#temporals.format(document.updatedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-10-23</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label>Description</label>
+                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1rem; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 0.9rem;" th:text="${document.description != null && !document.description.isBlank() ? document.description : 'No description provided.'}">
+                    Description text
+                </div>
+            </div>
+
+            <div>
+                <label>Storage Object Key (Private Supabase Storage)</label>
+                <div style="background: rgba(0,0,0,0.5); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.8rem; color: var(--emerald-light); word-break: break-all;" th:text="${document.storageObjectKey}">
+                    owners/1/uuid-file.pdf
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Metadata Card (if permitted) -->
+        <div class="card" th:if="${canEdit}">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Edit Metadata</h3>
+            
+            <form th:action="@{'/documents/' + ${document.id} + '/edit'}" method="post">
+                <div class="form-group">
+                    <label for="editTitle">Title</label>
+                    <input type="text" id="editTitle" name="title" th:value="${document.title}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editCategory">Category</label>
+                    <select id="editCategory" name="category">
+                        <option value="General" th:selected="${document.category == 'General'}">General</option>
+                        <option value="Financial" th:selected="${document.category == 'Financial'}">Financial</option>
+                        <option value="Legal" th:selected="${document.category == 'Legal'}">Legal</option>
+                        <option value="Identification" th:selected="${document.category == 'Identification'}">Identification</option>
+                        <option value="Medical" th:selected="${document.category == 'Medical'}">Medical</option>
+                        <option value="Confidential" th:selected="${document.category == 'Confidential'}">Confidential</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" name="description" rows="3" th:text="${document.description}"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Access Grants and Sharing Section (Owner or Admin Only) -->
+    <div class="card" th:if="${canShare}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Document Access Grants</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Manage granular READ and EDIT permissions for other users</p>
+            </div>
+        </div>
+
+        <!-- Share Form -->
+        <form th:action="@{'/documents/' + ${document.id} + '/share'}" method="post" style="display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 200px;">
+                <label for="shareUsername">Username or Email to Share With</label>
+                <input type="text" id="shareUsername" name="username" required placeholder="e.g. susu_viewer">
+            </div>
+
+            <div style="flex: 1; min-width: 140px;">
+                <label for="permissionType">Access Level</label>
+                <select id="permissionType" name="permissionType">
+                    <option value="READ" selected>READ (View & Download)</option>
+                    <option value="EDIT">EDIT (Read & Edit Metadata)</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.25rem;">
+                    Grant Access
+                </button>
+            </div>
+        </form>
+
+        <!-- Active Permissions Table -->
+        <div class="table-responsive" th:if="${!document.permissions.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Permission Level</th>
+                        <th>Granted By</th>
+                        <th>Granted Date</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="perm : ${document.permissions}">
+                        <td>
+                            <strong th:text="${perm.grantedUser.fullName != null ? perm.grantedUser.fullName : perm.grantedUser.username}">User</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="'@' + ${perm.grantedUser.username}">@user</div>
+                        </td>
+                        <td>
+                            <span class="badge" th:classappend="${perm.permissionType.name() == 'EDIT'} ? 'badge-warning' : 'badge-info'" th:text="${perm.permissionType}">READ</span>
+                        </td>
+                        <td th:text="${perm.grantedBy != null ? perm.grantedBy.username : 'Owner'}">Owner</td>
+                        <td style="color: var(--text-secondary);" th:text="${#temporals.format(perm.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-23</td>
+                        <td style="text-align: right;">
+                            <form th:action="@{'/documents/' + ${document.id} + '/revoke'}" method="post" style="display: inline;">
+                                <input type="hidden" name="targetUserId" th:value="${perm.grantedUser.id}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Immediately revoke access for this user?');">
+                                    Revoke
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${document.permissions.isEmpty()}" style="text-align: center; padding: 1.5rem; color: var(--text-secondary); font-size: 0.88rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm);">
+            🔒 This document is private to you. No other users have been granted access.
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

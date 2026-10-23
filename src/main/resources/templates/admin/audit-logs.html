@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Audit Trail — TrustVault Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('admin-audit')}"></div>
+
+<main class="main-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <a th:href="@{/admin}" style="color: #c084fc; text-decoration: none; font-size: 0.9rem;">&larr; Admin Overview</a>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">Forensic Security Audit Trail</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Tamper-resistant append-only security logs &bull; Unauthorized access and IDOR attempts highlighted
+            </p>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a th:href="@{/admin/audit-logs}" class="btn btn-sm" th:classappend="${currentFilter == 'all'} ? 'btn-primary' : 'btn-secondary'">
+                All Events
+            </a>
+            <a th:href="@{/admin/audit-logs(filter='denied')}" class="btn btn-sm" th:classappend="${currentFilter == 'denied'} ? 'btn-danger' : 'btn-secondary'">
+                🚨 Denied Attempts Only
+            </a>
+            <a th:href="@{/admin/audit-logs(filter='auth')}" class="btn btn-sm" th:classappend="${currentFilter == 'auth'} ? 'btn-primary' : 'btn-secondary'">
+                Authentication Events
+            </a>
+            <a th:href="@{/admin/audit-logs(filter='docs')}" class="btn btn-sm" th:classappend="${currentFilter == 'docs'} ? 'btn-primary' : 'btn-secondary'">
+                Document & Permissions
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive" th:if="${!logs.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                        <th>Client IP</th>
+                        <th>Security Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${logs}">
+                        <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);" th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-10-23</td>
+                        <td>
+                            <strong th:text="${log.actorUsername}">actor</strong>
+                            <div th:if="${log.actorRole != null}" style="font-size: 0.72rem; color: var(--text-muted);" th:text="${log.actorRole}">OWNER</div>
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; font-size: 0.82rem; font-weight: 600;" th:text="${log.action}">ACTION</span>
+                        </td>
+                        <td style="font-size: 0.85rem;" th:text="${log.targetType != null ? log.targetType + (log.targetId != null ? ' #' + log.targetId : '') : '-'}">Target</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${log.status == 'SUCCESS'} ? 'badge-success' : (${log.status == 'DENIED'} ? 'badge-danger' : 'badge-warning')" 
+                                  th:text="${log.status}">SUCCESS</span>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);" th:text="${log.ipAddress}">127.0.0.1</td>
+                        <td style="font-size: 0.82rem; color: var(--text-secondary);" th:text="${log.details}">Details</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${logs.isEmpty()}" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📋</div>
+            <p>No audit log records match the current filter.</p>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

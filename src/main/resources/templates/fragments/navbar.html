@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="navbar(activeNav)" class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/}" class="brand">
+            <div class="brand-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <span>Trust</span>Vault
+        </a>
+
+        <ul class="nav-links">
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/dashboard}" class="nav-link" th:classappend="${activeNav == 'dashboard'} ? 'active' : ''">
+                    Dashboard
+                </a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/documents}" class="nav-link" th:classappend="${activeNav == 'my-documents'} ? 'active' : ''">
+                    My Documents
+                </a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/documents/shared}" class="nav-link" th:classappend="${activeNav == 'shared-documents'} ? 'active' : ''">
+                    Shared
+                </a>
+            </li>
+            <li sec:authorize="hasAnyRole('OWNER', 'ADMIN')">
+                <a th:href="@{/documents/upload}" class="nav-link" th:classappend="${activeNav == 'upload'} ? 'active' : ''">
+                    Upload
+                </a>
+            </li>
+            <li sec:authorize="isAuthenticated()">
+                <a th:href="@{/documents/search}" class="nav-link" th:classappend="${activeNav == 'search'} ? 'active' : ''">
+                    Search
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin}" class="nav-link" th:classappend="${activeNav == 'admin-overview'} ? 'active' : ''" style="color: #c084fc;">
+                    Admin Panel
+                </a>
+            </li>
+        </ul>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div sec:authorize="isAuthenticated()" class="user-badge" th:if="${user != null}">
+                <span th:text="${user.fullName != null ? user.fullName : user.username}" style="font-weight: 600;">User</span>
+                <span class="role-pill"
+                      th:classappend="${user.role.name() == 'ADMIN'} ? 'role-admin' : (${user.role.name() == 'OWNER'} ? 'role-owner' : 'role-viewer')"
+                      th:text="${user.role}">OWNER</span>
+            </div>
+            
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}" class="btn btn-secondary btn-sm" title="Account Profile">
+                Profile
+            </a>
+            
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+            </form>
+
+            <div sec:authorize="isAnonymous()" style="display: flex; gap: 0.75rem;">
+                <a th:href="@{/login}" class="btn btn-secondary btn-sm">Sign In</a>
+                <a th:href="@{/register}" class="btn btn-primary btn-sm">Get Started</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" style="margin-top: auto;">
+    <div style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <strong>TrustVault</strong> &copy; 2026 &bull; Snovasys Fresher Hiring Challenge 2026
+        </div>
+        <div style="display: flex; gap: 1.5rem; font-size: 0.8rem;">
+            <span>Zero-Trust Architecture</span>
+            <span>Private Supabase Storage</span>
+            <span>Render Cloud Deployment</span>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

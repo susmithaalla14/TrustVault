@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Overview — TrustVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('admin-overview')}"></div>
+
+<main class="main-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">System Administration Console</h1>
+            <p style="color: #c084fc; font-size: 0.95rem;">
+                Platform governance, user authorization, and forensic security auditing
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <a th:href="@{/admin/users}" class="btn btn-secondary">
+                👥 Manage Users
+            </a>
+            <a th:href="@{/admin/audit-logs}" class="btn btn-primary" style="background: linear-gradient(135deg, #7c3aed, #4c1d95);">
+                🛡️ Audit Trail Logs
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <!-- Admin Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon" style="color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">👥</div>
+            <div>
+                <div class="metric-value" th:text="${totalUsers}">0</div>
+                <div class="metric-label">Registered Users</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">📄</div>
+            <div>
+                <div class="metric-value" th:text="${totalDocs}">0</div>
+                <div class="metric-label">Total Documents in Vault</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">☁️</div>
+            <div>
+                <div class="metric-value" th:text="${totalStorageFormatted}">0 B</div>
+                <div class="metric-label">Supabase Storage Total</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">⚡</div>
+            <div>
+                <div class="metric-value" th:text="${recentLogs.size()}">0</div>
+                <div class="metric-label">Recent Audit Events</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Security Audit Events -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Recent Security Audit Log Activity</h3>
+            <a th:href="@{/admin/audit-logs}" style="color: #c084fc; font-size: 0.88rem; text-decoration: none; font-weight: 600;">
+                View Complete Audit Trail &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive" th:if="${!recentLogs.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${recentLogs}">
+                        <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);" th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-10-23</td>
+                        <td>
+                            <strong th:text="${log.actorUsername}">actor</strong>
+                            <div th:if="${log.actorRole != null}" style="font-size: 0.72rem; color: var(--text-muted);" th:text="${log.actorRole}">OWNER</div>
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; font-size: 0.82rem; font-weight: 600;" th:text="${log.action}">ACTION</span>
+                        </td>
+                        <td style="font-size: 0.85rem;" th:text="${log.targetType != null ? log.targetType + ' #' + log.targetId : '-'}">Target</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${log.status == 'SUCCESS'} ? 'badge-success' : (${log.status == 'DENIED'} ? 'badge-danger' : 'badge-warning')" 
+                                  th:text="${log.status}">SUCCESS</span>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);" th:text="${log.ipAddress}">127.0.0.1</td>
+                        <td style="font-size: 0.82rem; color: var(--text-secondary);" th:text="${log.details}">Details</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${recentLogs.isEmpty()}" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            No audit records recorded yet.
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

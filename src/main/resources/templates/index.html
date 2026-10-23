@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustVault — Secure Document Management</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('home')}"></div>
+
+<main class="main-wrapper" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem 1.5rem;">
+    <div style="max-width: 850px;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--border-color); padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; color: var(--emerald-light); margin-bottom: 1.5rem;">
+            <span>🛡️ Snovasys Fresher Hiring Challenge 2026 Submission</span>
+        </div>
+
+        <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 1.5rem;">
+            Zero-Trust Document Security for <span style="color: var(--emerald-light);">Mission-Critical</span> Files
+        </h1>
+
+        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2.5rem; line-height: 1.6;">
+            TrustVault combines Java 21 LTS, Spring Security, private Supabase Storage object isolation, and tamper-resistant audit logging to guarantee confidential documents remain strictly protected.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem;">
+            <a th:href="@{/login}" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                Access Secure Vault &rarr;
+            </a>
+            <a th:href="@{/register}" class="btn btn-secondary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                Create Account
+            </a>
+        </div>
+
+        <!-- Architecture Highlights -->
+        <div class="metrics-grid" style="text-align: left; margin-bottom: 3rem;">
+            <div class="card">
+                <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🔒</div>
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff;">Private Object Storage</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                    Files are stored in private Supabase Storage buckets under cryptographic UUID paths. No public URLs exist.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🛡️</div>
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff;">Strict IDOR Defense</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                    Every download, edit, or delete verifies caller authorization on the server. Tampering with IDs is blocked and audited.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">📜</div>
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff;">Tamper-Resistant Audit</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                    Append-only security log records all logins, downloads, shares, revocations, and unauthorized access attempts.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">⚡</div>
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff;">Java 21 & Render Ready</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                    Containerized multi-stage Docker deployment with dynamic port binding and zero-credential leaks in GitHub.
+                </p>
+            </div>
+        </div>
+
+        <!-- Evaluation Test Credentials Box -->
+        <div class="card" style="background: rgba(16, 26, 23, 0.95); border: 1px solid rgba(16, 185, 129, 0.35); text-align: left;">
+            <h4 style="color: var(--emerald-light); margin-bottom: 0.75rem; font-size: 1rem;">
+                🔑 Snovasys Evaluator Demo Credentials:
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: var(--radius-sm);">
+                    <div style="color: var(--text-secondary);">Administrator:</div>
+                    <div>User: <strong>admin</strong></div>
+                    <div>Pass: <strong>Admin@TrustVault2026!</strong></div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: var(--radius-sm);">
+                    <div style="color: var(--text-secondary);">Document Owner:</div>
+                    <div>User: <strong>susu_owner</strong></div>
+                    <div>Pass: <strong>Owner@TrustVault2026!</strong></div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: var(--radius-sm);">
+                    <div style="color: var(--text-secondary);">Restricted Viewer:</div>
+                    <div>User: <strong>susu_viewer</strong></div>
+                    <div>Pass: <strong>Viewer@TrustVault2026!</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents — TrustVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('my-documents')}"></div>
+
+<main class="main-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">My Secure Documents</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Private objects isolated in Supabase Storage with granular access controls
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <a th:href="@{/documents/search}" class="btn btn-secondary">🔍 Search</a>
+            <a sec:authorize="hasAnyRole('OWNER', 'ADMIN')" th:href="@{/documents/upload}" class="btn btn-primary">+ Upload New File</a>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <div class="card">
+        <div class="table-responsive" th:if="${!documents.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title & Original Filename</th>
+                        <th>Category</th>
+                        <th>Size</th>
+                        <th>Permissions Active</th>
+                        <th>Uploaded On</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${documents}">
+                        <td>
+                            <a th:href="@{'/documents/' + ${doc.id}}" style="color: #fff; font-weight: 600; text-decoration: none;">
+                                <span th:text="${doc.title}">Document Title</span>
+                            </a>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" th:text="${doc.originalFilename}">file.pdf</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-success" th:text="${doc.category}">General</span>
+                        </td>
+                        <td th:text="${doc.getFormattedSize()}">1.2 MB</td>
+                        <td>
+                            <span class="badge badge-info" th:text="${doc.permissions.size()} + ' shared'">0 shared</span>
+                        </td>
+                        <td style="color: var(--text-secondary);" th:text="${#temporals.format(doc.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-23</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.4rem;">
+                                <a th:href="@{'/documents/' + ${doc.id}}" class="btn btn-secondary btn-sm" title="View Details and Permissions">
+                                    Details
+                                </a>
+                                <a th:href="@{'/documents/' + ${doc.id} + '/download'}" class="btn btn-primary btn-sm" title="Stream Download File">
+                                    Download
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${documents.isEmpty()}" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+            <div style="font-size: 3rem; margin-bottom: 0.75rem;">📂</div>
+            <h3>No documents found in your vault</h3>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Start by uploading a confidential document to your private storage bucket.</p>
+            <a sec:authorize="hasAnyRole('OWNER', 'ADMIN')" th:href="@{/documents/upload}" class="btn btn-primary btn-sm" style="margin-top: 1.25rem;">
+                Upload Document Now
+            </a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

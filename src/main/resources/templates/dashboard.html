@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault Dashboard — TrustVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('dashboard')}"></div>
+
+<main class="main-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">
+                Welcome back, <span th:text="${user.fullName != null ? user.fullName : user.username}" style="color: var(--emerald-light);">User</span>
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.2rem;">
+                Secure Document Management Dashboard &bull; Role: <strong th:text="${user.role}">OWNER</strong>
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <a th:href="@{/documents/search}" class="btn btn-secondary">
+                🔍 Search Vault
+            </a>
+            <a sec:authorize="hasAnyRole('OWNER', 'ADMIN')" th:href="@{/documents/upload}" class="btn btn-primary">
+                + Upload Document
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <!-- Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">📁</div>
+            <div>
+                <div class="metric-value" th:text="${ownedDocsCount}">0</div>
+                <div class="metric-label">My Documents</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">💾</div>
+            <div>
+                <div class="metric-value" th:text="${storageUsedFormatted}">0 B</div>
+                <div class="metric-label">Storage Consumed</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div>
+                <div class="metric-value" th:text="${sharedDocsCount}">0</div>
+                <div class="metric-label">Shared With Me</div>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">🛡️</div>
+            <div>
+                <div class="metric-value" style="font-size: 1.4rem;" th:text="${user.role}">OWNER</div>
+                <div class="metric-label">Account Privilege</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Platform Analytics Banner (Admin Only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(88, 28, 135, 0.25), rgba(16, 26, 23, 0.85)); border-color: rgba(192, 132, 252, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+                <h3 style="color: #e9d5ff; font-size: 1.15rem; font-weight: 700;">⚙️ System-Wide Administration Analytics</h3>
+                <p style="color: #c084fc; font-size: 0.85rem;">Platform health, overall storage utilization, and security audit activity</p>
+            </div>
+            <a th:href="@{/admin}" class="btn btn-sm btn-secondary" style="border-color: rgba(192, 132, 252, 0.4);">
+                Open Admin Console &rarr;
+            </a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.8rem; color: #d8b4fe;">Total Registered Users</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #fff;" th:text="${totalUsersCount}">0</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.8rem; color: #d8b4fe;">Total Platform Documents</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #fff;" th:text="${totalSystemDocsCount}">0</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.8rem; color: #d8b4fe;">Total Storage in Supabase</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #fff;" th:text="${totalSystemStorageFormatted}">0 B</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Recent Personal Documents</h3>
+            <a th:href="@{/documents}" style="color: var(--emerald-light); font-size: 0.88rem; text-decoration: none; font-weight: 600;">
+                View All &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive" th:if="${!recentDocuments.isEmpty()}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title / Original File</th>
+                        <th>Category</th>
+                        <th>File Size</th>
+                        <th>Created Date</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${recentDocuments}">
+                        <td>
+                            <a th:href="@{'/documents/' + ${doc.id}}" style="color: #fff; font-weight: 600; text-decoration: none;">
+                                <span th:text="${doc.title}">Doc Title</span>
+                            </a>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" th:text="${doc.originalFilename}">file.pdf</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-success" th:text="${doc.category}">General</span>
+                        </td>
+                        <td th:text="${doc.getFormattedSize()}">1.2 MB</td>
+                        <td style="color: var(--text-secondary);" th:text="${#temporals.format(doc.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-23</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.5rem;">
+                                <a th:href="@{'/documents/' + ${doc.id}}" class="btn btn-secondary btn-sm">Details</a>
+                                <a th:href="@{'/documents/' + ${doc.id} + '/download'}" class="btn btn-primary btn-sm">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${recentDocuments.isEmpty()}" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-secondary);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📭</div>
+            <p>Your vault has no documents yet.</p>
+            <a sec:authorize="hasAnyRole('OWNER', 'ADMIN')" th:href="@{/documents/upload}" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
+                Upload Your First File
+            </a>
+        </div>
+    </div>
+
+    <!-- Shared Documents Section -->
+    <div class="card" th:if="${!recentShared.isEmpty()}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Documents Shared With You</h3>
+            <a th:href="@{/documents/shared}" style="color: var(--emerald-light); font-size: 0.88rem; text-decoration: none; font-weight: 600;">
+                View All &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title / File</th>
+                        <th>Owner</th>
+                        <th>Category</th>
+                        <th>Size</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${recentShared}">
+                        <td>
+                            <a th:href="@{'/documents/' + ${doc.id}}" style="color: #fff; font-weight: 600; text-decoration: none;">
+                                <span th:text="${doc.title}">Doc Title</span>
+                            </a>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" th:text="${doc.originalFilename}">file.pdf</div>
+                        </td>
+                        <td th:text="${doc.owner.username}">owner</td>
+                        <td>
+                            <span class="badge badge-info" th:text="${doc.category}">General</span>
+                        </td>
+                        <td th:text="${doc.getFormattedSize()}">1.2 MB</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.5rem;">
+                                <a th:href="@{'/documents/' + ${doc.id}}" class="btn btn-secondary btn-sm">View</a>
+                                <a th:href="@{'/documents/' + ${doc.id} + '/download'}" class="btn btn-primary btn-sm">Download</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

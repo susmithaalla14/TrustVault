@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Profile — TrustVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('profile')}"></div>
+
+<main class="main-wrapper" style="max-width: 900px;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">Account Profile & Security</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Manage your personal vault credentials and identity
+        </p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <!-- Profile Info Card -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Personal Information</h3>
+
+            <div style="margin-bottom: 1.25rem; background: rgba(0,0,0,0.3); padding: 0.75rem 1rem; border-radius: var(--radius-sm);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Account Role</div>
+                <div style="font-weight: 700; color: var(--emerald-light);" th:text="${user.role}">OWNER</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+                    Created: <span th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-23</span>
+                </div>
+            </div>
+
+            <form th:action="@{/profile}" method="post">
+                <div class="form-group">
+                    <label for="usernameDisplay">Username (Immutable)</label>
+                    <input type="text" id="usernameDisplay" th:value="${user.username}" readonly style="background: rgba(0,0,0,0.5); color: var(--text-muted);">
+                </div>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" th:value="${user.fullName}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" th:value="${user.email}" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Update Profile
+                </button>
+            </form>
+        </div>
+
+        <!-- Password Change Card -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Change Password</h3>
+
+            <form th:action="@{/profile/password}" method="post">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" required placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label for="newPassword">New Password (min 8 chars)</label>
+                    <input type="password" id="newPassword" name="newPassword" required minlength="8" placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" required minlength="8" placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                    Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/navbar :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
