@@ -37,13 +37,13 @@ RUN chown -R trustvault:trustvault /app
 # Switch to non-root user
 USER trustvault
 
-# Render dynamically assigns $PORT (default fallback 8080)
-ENV PORT=8080
+# Render dynamically assigns $PORT (default 10000 on Render)
+ENV PORT=10000
 ENV SPRING_PROFILES_ACTIVE=prod
-EXPOSE 8080 10000
+EXPOSE 10000
 
 # Actuator health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-10000}/actuator/health || exit 1
 
-ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-10000} -jar /app/app.jar"]
