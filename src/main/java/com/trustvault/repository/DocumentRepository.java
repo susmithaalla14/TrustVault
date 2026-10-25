@@ -15,14 +15,16 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByOwnerOrderByCreatedAtDesc(User owner);
 
+    List<Document> findAllByOrderByCreatedAtDesc();
+
     Optional<Document> findByStorageObjectKey(String storageObjectKey);
 
     long countByOwner(User owner);
 
-    @Query("SELECT COALESCE(SUM(d.sizeBytes), 0) FROM Document d WHERE d.owner = :owner")
+    @Query("SELECT COALESCE(SUM(d.sizeBytes), 0L) FROM Document d WHERE d.owner = :owner")
     long getTotalStorageUsedByOwner(@Param("owner") User owner);
 
-    @Query("SELECT COALESCE(SUM(d.sizeBytes), 0) FROM Document d")
+    @Query("SELECT COALESCE(SUM(d.sizeBytes), 0L) FROM Document d")
     long getTotalStorageUsedSystemWide();
 
     /**

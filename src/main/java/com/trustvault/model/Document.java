@@ -58,7 +58,7 @@ public class Document {
     @Column(length = 500)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 

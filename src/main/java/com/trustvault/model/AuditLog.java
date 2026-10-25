@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_audit_actor", columnList = "actorUsername"),
         @Index(name = "idx_audit_action", columnList = "action"),
         @Index(name = "idx_audit_status", columnList = "status"),
-        @Index(name = "idx_audit_created", columnList = "timestamp")
+        @Index(name = "idx_audit_created", columnList = "created_at")
 })
 @Getter
 @Setter
@@ -59,6 +59,6 @@ public class AuditLog {
     private String details;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime timestamp;
 }

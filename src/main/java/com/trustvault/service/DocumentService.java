@@ -294,10 +294,20 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public List<Document> searchDocuments(User user, String query, String category) {
-        if (user.getRole() == Role.ADMIN) {
-            return documentRepository.searchAllDocumentsAdmin(query, category);
-        }
-        return documentRepository.searchOwnedDocuments(user, query, category);
+        String cleanQuery = (query != null && !query.isBlank()) ? query.trim().toLowerCase() : null;
+        String cleanCategory = (category != null && !category.isBlank()) ? category.trim() : null;
+
+        List<Document> baseDocs = (user.getRole() == Role.ADMIN)
+                ? documentRepository.findAllByOrderByCreatedAtDesc()
+                : documentRepository.findByOwnerOrderByCreatedAtDesc(user);
+
+        return baseDocs.stream()
+                .filter(doc -> cleanCategory == null || doc.getCategory().equalsIgnoreCase(cleanCategory))
+                .filter(doc -> cleanQuery == null
+                        || (doc.getTitle() != null && doc.getTitle().toLowerCase().contains(cleanQuery))
+                        || (doc.getOriginalFilename() != null && doc.getOriginalFilename().toLowerCase().contains(cleanQuery))
+                        || (user.getRole() == Role.ADMIN && doc.getOwner() != null && doc.getOwner().getUsername().toLowerCase().contains(cleanQuery)))
+                .toList();
     }
 
     private String sanitizeFilename(String filename) {

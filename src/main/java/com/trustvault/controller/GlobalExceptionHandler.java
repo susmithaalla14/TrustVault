@@ -47,7 +47,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public String handleGeneralException(Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         log.error("Unhandled exception at URI '{}': {}", request.getRequestURI(), ex.getMessage(), ex);
-        redirectAttributes.addFlashAttribute("errorMessage", "An error occurred: " + (ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName()));
+        String msg = ex.getMessage();
+        if (msg == null || msg.contains("Hibernate") || msg.contains("JDBC") || msg.contains("SQL")) {
+            msg = "A temporary server processing issue occurred. Please refresh or try again.";
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", msg);
         return "redirect:/dashboard";
     }
 }

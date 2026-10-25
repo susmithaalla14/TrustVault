@@ -28,7 +28,7 @@ public class DocumentPermission {
     @JoinColumn(name = "document_id", nullable = false)
     private Document document;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "granted_user_id", nullable = false)
     private User grantedUser;
 
@@ -36,7 +36,7 @@ public class DocumentPermission {
     @Column(nullable = false, length = 20)
     private PermissionType permissionType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "granted_by_id", nullable = false)
     private User grantedBy;
 
