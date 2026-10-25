@@ -73,9 +73,19 @@ public class SupabaseStorageService implements StorageService {
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 log.info("Successfully uploaded object to Supabase Storage: path='{}'", sanitizedPath);
                 return sanitizedPath;
+            } else if (response.statusCode() == 400 || response.statusCode() == 404) {
+                log.warn("Supabase Storage upload failed with status {}: {}. Attempting to ensure bucket exists and retry...", response.statusCode(), response.body());
+                if (ensureBucketExists()) {
+                    HttpResponse<String> retryResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (retryResponse.statusCode() >= 200 && retryResponse.statusCode() < 300) {
+                        log.info("Successfully uploaded object to Supabase Storage after bucket creation: path='{}'", sanitizedPath);
+                        return sanitizedPath;
+                    }
+                }
+                throw new IOException("Failed to upload document to Supabase Storage: " + response.body() + " (Status: " + response.statusCode() + ")");
             } else {
                 log.error("Supabase Storage upload failed with status {}: {}", response.statusCode(), response.body());
-                throw new IOException("Failed to upload document to Supabase Storage. Status: " + response.statusCode());
+                throw new IOException("Failed to upload document to Supabase Storage: " + response.body() + " (Status: " + response.statusCode() + ")");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -219,8 +229,9 @@ public class SupabaseStorageService implements StorageService {
                 return true;
             }
 
-            if (response.statusCode() == 404) {
-                log.info("Bucket '{}' not found. Creating dedicated private bucket...", bucket);
+            // Supabase returns 400 or 404 if the bucket doesn't exist
+            if (response.statusCode() == 404 || response.statusCode() == 400 || (response.body() != null && response.body().contains("not found"))) {
+                log.info("Bucket '{}' not found in Supabase (status {}). Creating dedicated private bucket...", bucket, response.statusCode());
                 String postEndpoint = cleanBaseUrl(properties.getUrl()) + "/storage/v1/bucket";
                 String createJson = String.format("{\"id\":\"%s\",\"name\":\"%s\",\"public\":false}", bucket, bucket);
 
@@ -235,7 +246,7 @@ public class SupabaseStorageService implements StorageService {
 
                 HttpResponse<String> createResponse = httpClient.send(createRequest, HttpResponse.BodyHandlers.ofString());
                 boolean created = createResponse.statusCode() >= 200 && createResponse.statusCode() < 300;
-                log.info("Private Supabase bucket '{}' creation result: {}", bucket, created ? "SUCCESS" : "FAILED (" + createResponse.statusCode() + ")");
+                log.info("Private Supabase bucket '{}' creation result: {} ({})", bucket, created ? "SUCCESS" : "FAILED (" + createResponse.statusCode() + ")", createResponse.body());
                 return created;
             }
         } catch (Exception e) {
