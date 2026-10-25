@@ -43,4 +43,11 @@ public class GlobalExceptionHandler {
         String referer = request.getHeader("Referer");
         return (referer != null && !referer.isBlank()) ? "redirect:" + referer : "redirect:/dashboard";
     }
+
+    @ExceptionHandler(Exception.class)
+    public String handleGeneralException(Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        log.error("Unhandled exception at URI '{}': {}", request.getRequestURI(), ex.getMessage(), ex);
+        redirectAttributes.addFlashAttribute("errorMessage", "An error occurred: " + (ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName()));
+        return "redirect:/dashboard";
+    }
 }

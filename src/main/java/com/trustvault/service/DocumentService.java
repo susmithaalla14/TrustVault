@@ -266,6 +266,19 @@ public class DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new NoSuchElementException("Document not found with ID: " + documentId));
         accessPolicyService.verifyRead(document, currentUser, request);
+
+        // Pre-initialize lazy collections and proxies within active transaction for view rendering
+        if (document.getPermissions() != null) {
+            document.getPermissions().size();
+            document.getPermissions().forEach(perm -> {
+                if (perm.getGrantedUser() != null) perm.getGrantedUser().getUsername();
+                if (perm.getGrantedBy() != null) perm.getGrantedBy().getUsername();
+            });
+        }
+        if (document.getOwner() != null) {
+            document.getOwner().getUsername();
+        }
+
         return document;
     }
 
