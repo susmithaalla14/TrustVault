@@ -50,6 +50,9 @@ public class SupabaseStorageService implements StorageService {
             return objectPath;
         }
 
+        // Automatically ensure bucket exists and resolve exact bucket name casing
+        ensureBucketExists();
+
         String sanitizedPath = sanitizePath(objectPath);
         String endpoint = String.format("%s/storage/v1/object/%s/%s",
                 cleanBaseUrl(properties.getUrl()),
@@ -64,7 +67,7 @@ public class SupabaseStorageService implements StorageService {
                 .header("Authorization", "Bearer " + properties.getServiceRoleKey())
                 .header("apikey", properties.getServiceRoleKey())
                 .header("Content-Type", (contentType != null && !contentType.isBlank()) ? contentType : "application/octet-stream")
-                .header("x-upsert", "false")
+                .header("x-upsert", "true")
                 .POST(HttpRequest.BodyPublishers.ofByteArray(content))
                 .build();
 
@@ -103,6 +106,7 @@ public class SupabaseStorageService implements StorageService {
             return data;
         }
 
+        ensureBucketExists();
         String sanitizedPath = sanitizePath(objectPath);
         String endpoint = String.format("%s/storage/v1/object/authenticated/%s/%s",
                 cleanBaseUrl(properties.getUrl()),
@@ -140,6 +144,7 @@ public class SupabaseStorageService implements StorageService {
             return true;
         }
 
+        ensureBucketExists();
         String sanitizedPath = sanitizePath(objectPath);
         String endpoint = String.format("%s/storage/v1/object/%s/%s",
                 cleanBaseUrl(properties.getUrl()),
@@ -171,6 +176,7 @@ public class SupabaseStorageService implements StorageService {
             return "/api/documents/stream?path=" + URLEncoder.encode(objectPath, StandardCharsets.UTF_8);
         }
 
+        ensureBucketExists();
         String sanitizedPath = sanitizePath(objectPath);
         String endpoint = String.format("%s/storage/v1/object/sign/%s/%s",
                 cleanBaseUrl(properties.getUrl()),
@@ -211,48 +217,57 @@ public class SupabaseStorageService implements StorageService {
             return true;
         }
 
-        String bucket = properties.getBucket();
-        String getEndpoint = cleanBaseUrl(properties.getUrl()) + "/storage/v1/bucket/" + bucket;
-
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(getEndpoint))
-                .timeout(Duration.ofSeconds(10))
-                .header("Authorization", "Bearer " + properties.getServiceRoleKey())
-                .header("apikey", properties.getServiceRoleKey())
-                .GET()
-                .build();
-
         try {
-            HttpResponse<String> response = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                log.info("Verified private Supabase bucket exists: '{}'", bucket);
-                return true;
+            // Query Supabase for existing buckets to handle case differences (e.g. TrustVault-documents vs trustvault-documents)
+            String listEndpoint = cleanBaseUrl(properties.getUrl()) + "/storage/v1/bucket";
+            HttpRequest listRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(listEndpoint))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Authorization", "Bearer " + properties.getServiceRoleKey())
+                    .header("apikey", properties.getServiceRoleKey())
+                    .GET()
+                    .build();
+
+            HttpResponse<String> listResponse = httpClient.send(listRequest, HttpResponse.BodyHandlers.ofString());
+            if (listResponse.statusCode() == 200) {
+                Pattern pattern = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
+                Matcher matcher = pattern.matcher(listResponse.body());
+                String configured = properties.getBucket();
+                while (matcher.find()) {
+                    String actualBucket = matcher.group(1);
+                    if (actualBucket.equalsIgnoreCase(configured)
+                            || actualBucket.equalsIgnoreCase("TrustVault-documents")
+                            || actualBucket.equalsIgnoreCase("TrustVault")) {
+                        log.info("Discovered matching Supabase bucket: configured='{}' -> active='{}'", configured, actualBucket);
+                        properties.setBucket(actualBucket);
+                        return true;
+                    }
+                }
             }
 
-            // Supabase returns 400 or 404 if the bucket doesn't exist
-            if (response.statusCode() == 404 || response.statusCode() == 400 || (response.body() != null && response.body().contains("not found"))) {
-                log.info("Bucket '{}' not found in Supabase (status {}). Creating dedicated private bucket...", bucket, response.statusCode());
-                String postEndpoint = cleanBaseUrl(properties.getUrl()) + "/storage/v1/bucket";
-                String createJson = String.format("{\"id\":\"%s\",\"name\":\"%s\",\"public\":false}", bucket, bucket);
+            // If not found in list, attempt to create the configured bucket
+            String bucket = properties.getBucket();
+            log.info("Bucket '{}' not found in Supabase. Creating dedicated private bucket...", bucket);
+            String postEndpoint = cleanBaseUrl(properties.getUrl()) + "/storage/v1/bucket";
+            String createJson = String.format("{\"id\":\"%s\",\"name\":\"%s\",\"public\":false}", bucket, bucket);
 
-                HttpRequest createRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(postEndpoint))
-                        .timeout(Duration.ofSeconds(15))
-                        .header("Authorization", "Bearer " + properties.getServiceRoleKey())
-                        .header("apikey", properties.getServiceRoleKey())
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(createJson))
-                        .build();
+            HttpRequest createRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(postEndpoint))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Authorization", "Bearer " + properties.getServiceRoleKey())
+                    .header("apikey", properties.getServiceRoleKey())
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(createJson))
+                    .build();
 
-                HttpResponse<String> createResponse = httpClient.send(createRequest, HttpResponse.BodyHandlers.ofString());
-                boolean created = createResponse.statusCode() >= 200 && createResponse.statusCode() < 300;
-                log.info("Private Supabase bucket '{}' creation result: {} ({})", bucket, created ? "SUCCESS" : "FAILED (" + createResponse.statusCode() + ")", createResponse.body());
-                return created;
-            }
+            HttpResponse<String> createResponse = httpClient.send(createRequest, HttpResponse.BodyHandlers.ofString());
+            boolean created = createResponse.statusCode() >= 200 && createResponse.statusCode() < 300;
+            log.info("Private Supabase bucket '{}' creation result: {} ({})", bucket, created ? "SUCCESS" : "FAILED (" + createResponse.statusCode() + ")", createResponse.body());
+            return created;
         } catch (Exception e) {
-            log.warn("Could not verify/create Supabase bucket '{}': {}", bucket, e.getMessage());
+            log.warn("Could not verify/create Supabase bucket: {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
     private String cleanBaseUrl(String url) {

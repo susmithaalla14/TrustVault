@@ -26,7 +26,7 @@ public class SupabaseStorageProperties {
     /**
      * Dedicated private bucket name for sensitive documents.
      */
-    private String bucket = "trustvault-documents";
+    private String bucket = "TrustVault-documents";
 
     /**
      * Storage mode: "supabase" (live REST API) or "local" (in-memory/filesystem fallback for offline dev/tests).
